@@ -101,11 +101,13 @@ function getSeason(pickupDate, dropoffDate) {
   const HIGH_SEASON_START = 4; // April
   const HIGH_SEASON_END = 10; // October
 
-  const pickupMonth = pickupDate.getMonth();
-  const dropoffMonth = dropoffDate.getMonth();
+  // getMonth() returns 0-11, so add 1 to get 1-12
+  const pickupMonth = pickupDate.getMonth() + 1;
+  const dropoffMonth = dropoffDate.getMonth() + 1;
 
   // If both pickup and dropoff are outside of high season, return low season
-  if (pickupMonth > HIGH_SEASON_END && dropoffMonth < HIGH_SEASON_START) {
+  if ((pickupMonth > HIGH_SEASON_END || pickupMonth < HIGH_SEASON_START)
+    && (dropoffMonth < HIGH_SEASON_START || dropoffMonth > HIGH_SEASON_END)) {
     return "Low";
   }
 
@@ -114,3 +116,6 @@ function getSeason(pickupDate, dropoffDate) {
 
 exports.calculatePrice = calculatePrice;
 exports.VALID_CAR_CLASSES = VALID_CAR_CLASSES;
+exports.getCarType = getCarType;
+exports.getDays = getDays;
+exports.getSeason = getSeason;
