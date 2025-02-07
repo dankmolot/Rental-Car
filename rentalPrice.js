@@ -1,75 +1,98 @@
 
-function price(pickup, dropoff, pickupDate, dropoffDate, type, age) {
-  const clazz = getClazz(type);
-  const days = get_days(pickupDate, dropoffDate);
-  const season = getSeason(pickupDate, dropoffDate);
+/**
+ * @param {Date} pickupDate
+ * @param {Date} dropoffDate
+ * @param {string} carType
+ * @param {number} driverAge
+ * @returns
+ */
+function calculatePrice(pickupDate, dropoffDate, carType, driverAge) {
+  const rentalDays = getDays(pickupDate, dropoffDate);
+  const rentalSeason = getSeason(pickupDate, dropoffDate);
 
-  if (age < 18) {
+  carType = getCarType(carType);
+
+  // Individuals under the age of 18 are ineligible to rent a car.
+  if (driverAge < 18) {
     return "Driver too young - cannot quote the price";
   }
 
-  if (age <= 21 && clazz !== "Compact") {
+  // Those aged 18-21 can only rent Compact cars.
+  if (driverAge <= 21 && carType !== "Compact") {
     return "Drivers 21 y/o or less can only rent Compact vehicles";
   }
 
-  let rentalprice = age * days;
+  // The minimum rental price per day is equivalent to the age of the driver.
+  let rentalPrice = driverAge * rentalDays;
 
-  if (clazz === "Racer" && age <= 25 && season === "High") {
-    rentalprice *= 1.5;
+  // For Racers, the price is increased by 50% if the driver is 25 years old or younger (except during the low season).
+  if (carType === "Racer" && driverAge <= 25 && rentalSeason === "High") {
+    rentalPrice *= 1.5;
   }
 
-  if (season === "High") {
-    rentalprice *= 1.15;
+  // If renting in High season, price is increased by 15%.
+  if (rentalSeason === "High") {
+    rentalPrice *= 1.15;
   }
 
-  if (days > 10 && season === "Low") {
-    rentalprice *= 0.9;
+  // If renting for more than 10 days, price is decresed by 10% (except during the high season).
+  if (rentalDays > 10 && rentalSeason === "Low") {
+    rentalPrice *= 0.9;
   }
-  return '$' + rentalprice;
+  return '$' + rentalPrice;
 }
 
-function getClazz(type) {
-  switch (type) {
-    case "Compact":
-      return "Compact";
-    case "Electric":
-      return "Electric";
-    case "Cabrio":
-      return "Cabrio";
-    case "Racer":
-      return "Racer";
-    default:
-      return "Unknown";
+// Rental cars are categorized into 4 classes: Compact, Electric, Cabrio, Racer.
+const VALID_CAR_CLASSES = ["Compact", "Electric", "Cabrio", "Racer"];
+
+/**
+ * @param {string} type
+ * @returns string
+ */
+function getCarType(type) {
+  if (VALID_CAR_CLASSES.includes(type)) {
+    return type;
   }
+
+  return "Unknown";
 }
 
-function get_days(pickupDate, dropoffDate) {
-  const oneDay = 24 * 60 * 60 * 1000; // hours*minutes*seconds*milliseconds
-  const firstDate = new Date(pickupDate);
-  const secondDate = new Date(dropoffDate);
+/**
+ * Calculates the number of days between two dates.
+ * @param {Date} beginDate
+ * @param {Date} endDate
+ * @returns number
+ */
+function getDays(beginDate, endDate) {
+  const ONE_DAY = 24 * 60 * 60 * 1000; // hours*minutes*seconds*milliseconds
 
-  return Math.round(Math.abs((firstDate - secondDate) / oneDay)) + 1;
+  return Math.round(Math.abs((beginDate - endDate) / ONE_DAY)) + 1;
 }
 
+
+/**
+ * Determines the season based on the pickup and dropoff dates.
+ * @param {Date} pickupDate
+ * @param {Date} dropoffDate
+ * @returns "High" or "Low"
+ */
 function getSeason(pickupDate, dropoffDate) {
-  const pickup = new Date(pickupDate);
-  const dropoff = new Date(dropoffDate);
+  // Low season is from November until end of March.
+  // High season is from April until end of October.
 
-  const start = 4;
-  const end = 10;
+  const HIGH_SEASON_START = 4; // April
+  const HIGH_SEASON_END = 10; // October
 
-  const pickupMonth = pickup.getMonth();
-  const dropoffMonth = dropoff.getMonth();
+  const pickupMonth = pickupDate.getMonth();
+  const dropoffMonth = dropoffDate.getMonth();
 
-  if (
-    (pickupMonth >= start && pickupMonth <= end) ||
-    (dropoffMonth >= start && dropoffMonth <= end) ||
-    (pickupMonth < start && dropoffMonth > end)
-  ) {
-    return "High";
-  } else {
+  // If both pickup and dropoff are outside of high season, return low season
+  if (pickupMonth > HIGH_SEASON_END && dropoffMonth < HIGH_SEASON_START) {
     return "Low";
   }
+
+  return "High";
 }
 
-exports.price = price;
+exports.calculatePrice = calculatePrice;
+exports.VALID_CAR_CLASSES = VALID_CAR_CLASSES;
