@@ -20,11 +20,12 @@ app.post('/', (req, res) => {
   const dropoffDate = new Date(post.dropoffDate);
   // const carType = String(post.carType);
   const driverAge = Number(post.driverAge);
+  const driverLicenseAge = Number(post.driverLicenseAge);
 
   let result = formHtml + resultHtml;
 
   for (const carType of rental.VALID_CAR_CLASSES) {
-    const price = rental.calculatePrice(pickupDate, dropoffDate, carType, driverAge);
+    const price = rental.calculatePrice(pickupDate, dropoffDate, carType, driverAge, driverLicenseAge);
     result = result.replaceAll('$price' + carType, price);
   }
 

@@ -4,9 +4,10 @@
  * @param {Date} dropoffDate
  * @param {string} carType
  * @param {number} driverAge
+ * @param {number} driverLicenseAge
  * @returns
  */
-function calculatePrice(pickupDate, dropoffDate, carType, driverAge) {
+function calculatePrice(pickupDate, dropoffDate, carType, driverAge, driverLicenseAge) {
   const rentalDays = getDays(pickupDate, dropoffDate);
   const rentalSeason = getSeason(pickupDate, dropoffDate);
 
@@ -17,6 +18,11 @@ function calculatePrice(pickupDate, dropoffDate, carType, driverAge) {
     return "Driver too young - cannot quote the price";
   }
 
+  // Individuals holding a driver's license for less than a year are ineligible to rent.
+  if (driverLicenseAge < 1) {
+    return "Driver must hold a license for at least 1 year";
+  }
+
   // Those aged 18-21 can only rent Compact cars.
   if (driverAge <= 21 && carType !== "Compact") {
     return "Drivers 21 y/o or less can only rent Compact vehicles";
@@ -24,6 +30,17 @@ function calculatePrice(pickupDate, dropoffDate, carType, driverAge) {
 
   // The minimum rental price per day is equivalent to the age of the driver.
   let rentalPrice = driverAge * rentalDays;
+
+  // If the driver's license has been held for less than three years,
+  // then an additional 15 euros will be added to the daily rental price during high season.
+  if (driverLicenseAge < 3 && rentalSeason === "High") {
+    rentalPrice += 15;
+  }
+
+  // If the driver's license has been held for less than two years, the rental price is increased by 30%.
+  if (driverLicenseAge < 2) {
+    rentalPrice *= 1.3;
+  }
 
   // For Racers, the price is increased by 50% if the driver is 25 years old or younger (except during the low season).
   if (carType === "Racer" && driverAge <= 25 && rentalSeason === "High") {
@@ -39,7 +56,8 @@ function calculatePrice(pickupDate, dropoffDate, carType, driverAge) {
   if (rentalDays > 10 && rentalSeason === "Low") {
     rentalPrice *= 0.9;
   }
-  return '$' + rentalPrice;
+
+  return '$' + Math.round(rentalPrice);
 }
 
 // Rental cars are categorized into 4 classes: Compact, Electric, Cabrio, Racer.
