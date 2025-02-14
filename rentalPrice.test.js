@@ -48,9 +48,23 @@ describe('getSeason', () => {
   }
 })
 
+describe('isWeekend', () => {
+  const testDates = [
+    ['2025-02-10', '2025-02-12', false],
+    ['2025-02-13', '2025-02-15', true],
+    ['2025-02-14', '2025-02-17', true],
+  ]
+
+  for (const [pickupDate, dropoffDate, expected] of testDates) {
+    test(`${pickupDate} to ${dropoffDate} -> ${expected}`, () => {
+      expect(rental.isWeekend(new Date(pickupDate), new Date(dropoffDate))).toBe(expected)
+    })
+  }
+})
+
 describe('calculatePrice', () => {
-  const pickupDate = new Date('2020-01-01')
-  const dropoffDate = new Date('2020-01-04')
+  const pickupDate = new Date('2025-02-10')
+  const dropoffDate = new Date('2025-02-13')
 
   test('The minimum rental price per day is equivalent to the age of the driver', () => {
     expect(rental.calculatePrice(pickupDate, dropoffDate, 'Compact', 50, 20)).toBe('$200')
@@ -69,24 +83,24 @@ describe('calculatePrice', () => {
   })
 
   test('If renting in High season, price is increased by 15%', () => {
-    expect(rental.calculatePrice(new Date('2020-05-01'), new Date('2020-05-04'), 'Compact', 50, 20)).toBe('$230')
+    expect(rental.calculatePrice(new Date('2025-05-05'), new Date('2025-05-08'), 'Compact', 50, 20)).toBe('$230')
   })
 
   describe('For Racers, the price is increased by 50% if the driver is 25 years old or younger (except during the low season)', () => {
     test('during low season', () => {
-      expect(rental.calculatePrice(new Date('2020-01-01'), new Date('2020-01-04'), 'Racer', 25, 20)).toBe('$100')
+      expect(rental.calculatePrice(pickupDate, dropoffDate, 'Racer', 25, 20)).toBe('$100')
     })
     test('during high season', () => {
-      expect(rental.calculatePrice(new Date('2020-05-01'), new Date('2020-05-04'), 'Racer', 25, 20)).toBe('$173')
+      expect(rental.calculatePrice(new Date('2025-05-05'), new Date('2025-05-08'), 'Racer', 25, 20)).toBe('$173')
     })
   })
 
   describe('If renting for more than 10 days, price is decresed by 10% (except during the high season)', () => {
     test('during low season', () => {
-      expect(rental.calculatePrice(new Date('2020-01-01'), new Date('2020-01-20'), 'Compact', 50, 20)).toBe('$900')
+      expect(rental.calculatePrice(new Date('2025-02-03'), new Date('2025-02-22'), 'Compact', 50, 20)).toBe('$945')
     })
     test('during high season', () => {
-      expect(rental.calculatePrice(new Date('2020-05-01'), new Date('2020-05-20'), 'Compact', 50, 20)).toBe('$1150')
+      expect(rental.calculatePrice(new Date('2025-05-05'), new Date('2025-05-24'), 'Compact', 50, 20)).toBe('$1208')
     })
   })
 
@@ -99,6 +113,28 @@ describe('calculatePrice', () => {
   })
 
   test('If the driver\'s license has been held for less than three years, then an additional 15 euros will be added to the daily rental price during high season', () => {
-    expect(rental.calculatePrice(new Date('2020-05-01'), new Date('2020-05-04'), 'Compact', 50, 2)).toBe('$247')
+    expect(rental.calculatePrice(new Date('2025-05-05'), new Date('2025-05-08'), 'Compact', 50, 2)).toBe('$247')
+  })
+
+  // Weekday/Weekend Pricing
+  describe('Weekdays have regular price and weekend days have 5% price increase', () => {
+    test('Monday, Tuesday, Wednesday', () => {
+      expect(rental.calculatePrice(new Date('2025-02-10'), new Date('2025-02-12'), 'Compact', 50, 20)).toBe('$150')
+    })
+
+    test('Thursday, Friday, Saturday', () => {
+      expect(rental.calculatePrice(new Date('2025-02-13'), new Date('2025-02-15'), 'Compact', 50, 20)).toBe('$158')
+    })
   })
 })
+
+/*Weekday/Weekend Pricing:
+
+Write tests to ensure that pricing is different for weekdays and weekends. Write tests to verify correctly determined price based on the rental period.
+
+Implement functionality to have different pricing for weekdays and weekends. Weekdays have regular price and weekend days have 5% price increase.
+
+Example 1: 50 year old driver rents a car for three days: Monday, Tuesday, Wednesday - Total price $150
+
+Example 2: 50 year old driver rents a car for three days: Thursday, Friday, Saturday - Total price $152.50*/
+

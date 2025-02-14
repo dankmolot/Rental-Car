@@ -42,6 +42,11 @@ function calculatePrice(pickupDate, dropoffDate, carType, driverAge, driverLicen
     rentalPrice *= 1.3;
   }
 
+  // Weekdays have regular price and weekend days have 5% price increase.
+  if (isWeekend(pickupDate, dropoffDate)) {
+    rentalPrice *= 1.05;
+  }
+
   // For Racers, the price is increased by 50% if the driver is 25 years old or younger (except during the low season).
   if (carType === "Racer" && driverAge <= 25 && rentalSeason === "High") {
     rentalPrice *= 1.5;
@@ -58,6 +63,28 @@ function calculatePrice(pickupDate, dropoffDate, carType, driverAge, driverLicen
   }
 
   return '$' + Math.round(rentalPrice);
+}
+
+/**
+ * @param {Date} pickupDate
+ * @param {Date} dropoffDate
+ * @returns boolean
+ */
+function isWeekend(pickupDate, dropoffDate) {
+  const ONE_DAY = 24 * 60 * 60 * 1000; // hours*minutes*seconds*milliseconds
+
+  // rented more than 5 days, so at least one weekend is included
+  if ((dropoffDate - pickupDate) > 5 * ONE_DAY) {
+    return true;
+  }
+
+  const SATURDAY = 6
+  const SUNDAY = 0
+  const pickupDay = pickupDate.getDay()
+  const dropoffDay = dropoffDate.getDay()
+  return pickupDay === SUNDAY || pickupDay === SATURDAY ||
+         dropoffDay === SUNDAY || dropoffDay === SATURDAY ||
+         pickupDay > dropoffDay;
 }
 
 // Rental cars are categorized into 4 classes: Compact, Electric, Cabrio, Racer.
@@ -119,3 +146,4 @@ exports.VALID_CAR_CLASSES = VALID_CAR_CLASSES;
 exports.getCarType = getCarType;
 exports.getDays = getDays;
 exports.getSeason = getSeason;
+exports.isWeekend = isWeekend;
